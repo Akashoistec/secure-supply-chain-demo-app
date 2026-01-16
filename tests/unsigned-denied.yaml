@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: unsigned-test
+  namespace: demo-app
+spec:
+  containers:
+    - name: app
+      image: 910321623036.dkr.ecr.ap-south-1.amazonaws.com/platform/secure-supply-chain-demo-app@sha256:f1a4821bb5194625b1039f0e981e3254afd0bf60a0c55b78d4da3afdac709a98
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
