@@ -1,4 +1,4 @@
-FROM alpine:1.25-alpine 
+FROM alpine:3.20-alpine 
 
 #Create non-root user
 
