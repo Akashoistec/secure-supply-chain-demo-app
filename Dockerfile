@@ -1,12 +1,11 @@
-FROM nignx:3.20-alpine 
+FROM nginx:1.25-alpine
 
-#Create non-root user
-
+# Create non-root user
 RUN addgroup -S app && adduser -S app -G app
 
-# Copy content 
-COPY index.html /usr/share/nginx/index.html
+# Copy content
+COPY index.html /usr/share/nginx/html/index.html
 
-#Swtich to non-root
+# Switch to non-root
 USER app
 
