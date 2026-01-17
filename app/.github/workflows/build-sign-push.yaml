@@ -1,0 +1,58 @@
+name: Build, Push, and Sign Image
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: 910321623036.dkr.ecr.ap-south-1.amazonaws.com
+  ECR_REPOSITORY: platform/secure-supply-chain-demo-app
+  IMAGE_NAME: secure-supply-chain-demo-app
+
+jobs:
+  build-sign-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::910321623036:role/github-actions-ecr-signer
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        id: build-image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          IMAGE_URI=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+
+          echo "Building $IMAGE_URI"
+
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+
+          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.5.0
+
+      - name: Sign image with Cosign (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          IMAGE_URI="${{ steps.build-image.outputs.image }}"
+          cosign sign --yes $IMAGE_URI
