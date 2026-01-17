@@ -1,0 +1,27 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-signed-images-demo
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: require-signed-by-github
+    match:
+      resources:
+        kinds:
+        - Pod
+        namespaces:
+        - demo-app
+    verifyImages:
+    - imageReferences:
+      - "910321623036.dkr.ecr.ap-south-1.amazonaws.com/*"
+
+      mutateDigest: false
+      attestors:
+      - entries:
+        - keyless:
+            issuer: "https://token.actions.githubusercontent.com"
+            subject: "https://github.com/Akashoistec/secure-supply-chain-demo-app/.github/workflows/build-sign-push.yml@refs/heads/main"
+            rekor:
+              url: https://rekor.sigstore.dev
