@@ -1,13 +1,13 @@
-FROM nginx:1.27-alpine
+FROM python:3.10-slim
 
-# Remove default config details
-RUN rm /etc/nginx/conf.d/default.conf
+WORKDIR /APP
 
-# Add our config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY app /usr/share/nginx/html
+COPY requirements.txt .
 
-# Run as non-root
-USER 101
+RUN pip install --nocache-dir -r requiremnts.txt
 
-EXPOSE 8080
+COPY app/main.py
+
+EXPOSE 8000
+
+CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
